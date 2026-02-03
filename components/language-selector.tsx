@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const languages = [
   { code: "en", name: "English" },
@@ -14,19 +14,41 @@ const languages = [
 export function LanguageSelector() {
   const [open, setOpen] = useState(false)
 
+  // 🔹 Apply saved language on page load
+  useEffect(() => {
+    const savedLang = localStorage.getItem("selectedLanguage")
+
+    if (!savedLang || savedLang === "en") {
+      resetTranslate()
+      return
+    }
+
+    applyTranslate(savedLang)
+  }, [])
+
+  const resetTranslate = () => {
+    document.cookie =
+      "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+    document.cookie =
+      "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." +
+      window.location.hostname
+  }
+
+  const applyTranslate = (langCode: string) => {
+    resetTranslate()
+    const langPath = `/en/${langCode}`
+
+    document.cookie = `googtrans=${langPath}; path=/;`
+    document.cookie = `googtrans=${langPath}; path=/; domain=.${window.location.hostname}`
+  }
+
   const selectLanguage = (langCode: string) => {
     localStorage.setItem("selectedLanguage", langCode)
 
     if (langCode === "en") {
-      document.cookie =
-        "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
-      document.cookie =
-        "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=." +
-        window.location.hostname
+      resetTranslate()
     } else {
-      const langPath = `/en/${langCode}`
-      document.cookie = `googtrans=${langPath}; path=/;`
-      document.cookie = `googtrans=${langPath}; path=/; domain=.${window.location.hostname}`
+      applyTranslate(langCode)
     }
 
     window.location.reload()
@@ -42,7 +64,7 @@ export function LanguageSelector() {
         🌐 Change Language
       </button>
 
-      {/* Language modal – ONLY opens on click */}
+      {/* Language modal */}
       {open && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999]">
           <div className="bg-secondary p-6 rounded-2xl text-center max-w-sm mx-4">
